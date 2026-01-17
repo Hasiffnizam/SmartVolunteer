@@ -2,10 +2,10 @@
   <nav class="w-full rounded-2xl bg-white/60 backdrop-blur border border-white/60 shadow-sm z-50 relative">
     <div class="w-full px-5 py-3 flex items-center justify-between">
 
-      <!-- LEFT: Sidebar toggle + Brand -->
+      {{-- LEFT: Sidebar toggle + Brand --}}
       <div class="flex items-center gap-3">
 
-        {{-- Sidebar toggle (only when logged in) --}}
+        {{-- Sidebar toggle (only logged in users) --}}
         @auth
           <button
             type="button"
@@ -34,38 +34,40 @@
             class="h-10 w-10"
             onerror="this.style.display='none'"
           />
-          <span
-            class="inline-block font-extrabold tracking-tight text-lg
-                   bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500
-                   bg-clip-text text-transparent">
+          <span class="font-extrabold tracking-tight text-lg
+                       bg-gradient-to-r from-orange-500 via-orange-400 to-pink-500
+                       bg-clip-text text-transparent">
             SmartVolunteer
           </span>
         </a>
       </div>
 
-      <!-- RIGHT: links + auth (desktop) -->
+      {{-- RIGHT: Desktop --}}
       <div class="hidden md:flex items-center gap-5 text-sm font-semibold text-slate-700">
 
+        {{-- ================= GUEST ================= --}}
         @guest
-          <!-- Public links -->
-          <a href="{{ url('/#about') }}" class="relative hover:text-slate-900 transition
-             after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
-             after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
-             hover:after:w-full after:transition-all after:duration-300">
+          <a href="{{ url('/#about') }}"
+             class="relative hover:text-slate-900 transition
+                    after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
+                    after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
+                    hover:after:w-full after:transition-all after:duration-300">
             About
           </a>
 
-          <a href="{{ url('/#services') }}" class="relative hover:text-slate-900 transition
-             after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
-             after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
-             hover:after:w-full after:transition-all after:duration-300">
-            Services
+          <a href="{{ url('/#features') }}"
+             class="relative hover:text-slate-900 transition
+                    after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
+                    after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
+                    hover:after:w-full after:transition-all after:duration-300">
+            How it works
           </a>
 
-          <a href="{{ url('/#contact') }}" class="relative hover:text-slate-900 transition
-             after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
-             after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
-             hover:after:w-full after:transition-all after:duration-300">
+          <a href="{{ url('/#contact') }}"
+             class="relative hover:text-slate-900 transition
+                    after:absolute after:left-0 after:-bottom-1 after:h-[2px] after:w-0
+                    after:bg-gradient-to-r after:from-orange-500 after:to-pink-500
+                    hover:after:w-full after:transition-all after:duration-300">
             Contact
           </a>
 
@@ -78,19 +80,21 @@
           </a>
 
           <a href="{{ route('register.show') }}"
-             class="px-4 py-2 rounded-xl text-white text-sm font-semibold shadow-sm transition
-                    bg-gradient-to-r from-orange-500 to-pink-500">
-            Register
+             class="px-5 py-2.5 rounded-xl text-white text-sm font-bold shadow-md transition
+                    bg-gradient-to-r from-orange-500 to-pink-500
+                    hover:from-orange-400 hover:to-pink-400
+                    hover:shadow-lg">
+            Join as Volunteer
           </a>
         @endguest
 
+        {{-- ================= AUTH ================= --}}
         @auth
           @php
             $user = auth()->user();
-            $isAdmin = $user && ($user->role === 'admin');
+            $isAdmin = ($user->role === 'admin');
           @endphp
 
-          {{-- Welcome text --}}
           <span class="text-base font-semibold text-slate-700">
             {{ $isAdmin ? 'Welcome Admin' : 'Welcome - '.$user->name }}
           </span>
@@ -111,9 +115,16 @@
                       : asset('images/default-avatar.png'));
               @endphp
 
-        <img class="h-10 w-10 rounded-full object-cover border border-white/70 shadow-sm" src="{{ $avatarUrl }}" alt="Profile" onerror="this.onerror=null;this.src=this.dataset.fallback;" data-fallback="{{ asset('images/smartvolunteer-logo.png') }}"/>
+              <img
+                class="h-10 w-10 rounded-full object-cover border border-white/70 shadow-sm"
+                src="{{ $avatarUrl }}"
+                alt="Profile"
+                onerror="this.src='{{ asset('images/smartvolunteer-logo.png') }}'"
+              />
 
-              <svg class="h-5 w-5 text-slate-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg class="h-5 w-5 text-slate-500"
+                   viewBox="0 0 20 20"
+                   fill="currentColor">
                 <path fill-rule="evenodd"
                       d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.25a.75.75 0 01-1.06 0L5.21 8.29a.75.75 0 01.02-1.08z"
                       clip-rule="evenodd"/>
@@ -128,8 +139,8 @@
                 <div class="text-xs text-slate-500">{{ $user->email }}</div>
               </div>
 
-              {{-- Profile (VOLUNTEER ONLY) --}}
-              @if(($user->role ?? null) === 'volunteer')
+              {{-- Volunteer profile --}}
+              @if(!$isAdmin)
                 <a href="{{ route('volunteer.profile.show') }}"
                    class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
                   Profile
@@ -148,7 +159,7 @@
         @endauth
       </div>
 
-      <!-- Mobile -->
+      {{-- MOBILE --}}
       <div class="md:hidden flex items-center gap-2">
         @auth
           <form method="POST" action="{{ route('logout') }}">
@@ -157,9 +168,9 @@
           </form>
         @else
           <a href="{{ route('register.show') }}"
-             class="px-4 py-2 rounded-xl text-white text-sm font-semibold
+             class="px-4 py-2 rounded-xl text-white text-sm font-bold
                     bg-gradient-to-r from-orange-500 to-pink-500">
-            Start
+            Join
           </a>
         @endauth
       </div>

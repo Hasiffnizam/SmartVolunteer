@@ -15,39 +15,58 @@ class ReportController extends Controller
 
         $userId = $user->id;
 
-        // ✅ Your real join table + columns (from your screenshot)
         $joinTable = 'event_registrations';
-        $userCol = 'volunteer_id';      // links to users.id
-        $presentCol = 'present';        // 1 = present, 0 = absent, null = not recorded
-        $causeNameCol = 'name';         // causes.name
 
         /**
-         * Base query: joined events for this volunteer
+         * Base: all registrations for this volunteer
          */
-        $joinedEventsQuery = DB::table($joinTable)
+        $base = DB::table($joinTable)
             ->join('events', 'events.id', '=', "{$joinTable}.event_id")
-            ->where("{$joinTable}.{$userCol}", $userId);
+            ->where("{$joinTable}.volunteer_id", $userId);
 
-        $totalJoined = (clone $joinedEventsQuery)
+        /**
+         * Total joined events
+         */
+        $totalJoined = (clone $base)
             ->distinct('events.id')
             ->count('events.id');
 
         /**
-         * Attendance counts from event_registrations.present
+         * Present / Absent / Not recorded
+         *
+         * Priority:
+         * 1) attendance_status ('present'/'absent')
+         * 2) fallback to present column (1/0)
+         * 3) else not recorded
          */
-        $presentCount = (clone $joinedEventsQuery)
-            ->where("{$joinTable}.{$presentCol}", 1)
+        $presentCount = (clone $base)
+            ->where(function ($q) use ($joinTable) {
+                $q->where("{$joinTable}.attendance_status", 'present')
+                  ->orWhere(function ($q2) use ($joinTable) {
+                      $q2->whereNull("{$joinTable}.attendance_status")
+                         ->where("{$joinTable}.present", 1);
+                  });
+            })
             ->count();
 
-        $absentCount = (clone $joinedEventsQuery)
-            ->where("{$joinTable}.{$presentCol}", 0)
+        $absentCount = (clone $base)
+            ->where(function ($q) use ($joinTable) {
+                $q->where("{$joinTable}.attendance_status", 'absent')
+                  ->orWhere(function ($q2) use ($joinTable) {
+                      $q2->whereNull("{$joinTable}.attendance_status")
+                         ->where("{$joinTable}.present", 0);
+                  });
+            })
             ->count();
 
-        $notRecorded = (clone $joinedEventsQuery)
-            ->whereNull("{$joinTable}.{$presentCol}")
+        $notRecorded = (clone $base)
+            ->whereNull("{$joinTable}.attendance_status")
+            ->whereNull("{$joinTable}.present")
             ->count();
 
-        // Attendance % based only on marked (present+absent)
+        /**
+         * Attendance rate based on marked only
+         */
         $markedCount = $presentCount + $absentCount;
 
         $attendanceRate = $markedCount > 0
@@ -59,13 +78,13 @@ class ReportController extends Controller
             : 0;
 
         /**
-         * Chart: joined events by cause
+         * Chart: events joined by cause
          */
         $byCause = DB::table($joinTable)
             ->join('events', 'events.id', '=', "{$joinTable}.event_id")
             ->leftJoin('causes', 'causes.id', '=', 'events.cause_id')
-            ->where("{$joinTable}.{$userCol}", $userId)
-            ->selectRaw("COALESCE(causes.$causeNameCol, 'Uncategorized') as cause_name, COUNT(DISTINCT events.id) as total")
+            ->where("{$joinTable}.volunteer_id", $userId)
+            ->selectRaw("COALESCE(causes.name, 'Uncategorized') as cause_name, COUNT(DISTINCT events.id) as total")
             ->groupBy('cause_name')
             ->orderByDesc('total')
             ->get();
@@ -74,24 +93,26 @@ class ReportController extends Controller
         $causeTotals = $byCause->pluck('total')->values();
 
         /**
-         * Recent joined events list (latest 10)
+         * Recent joined events (latest 10)
          */
         $recentEvents = DB::table($joinTable)
             ->join('events', 'events.id', '=', "{$joinTable}.event_id")
             ->leftJoin('causes', 'causes.id', '=', 'events.cause_id')
-            ->where("{$joinTable}.{$userCol}", $userId)
+            ->where("{$joinTable}.volunteer_id", $userId)
             ->select(
                 'events.id',
                 'events.title',
                 'events.event_date',
                 'events.time_slot',
                 'events.location',
-                DB::raw("COALESCE(causes.$causeNameCol, 'Uncategorized') as cause_name"),
+                DB::raw("COALESCE(causes.name, 'Uncategorized') as cause_name"),
                 DB::raw("
                     CASE
-                      WHEN {$joinTable}.{$presentCol} = 1 THEN 'present'
-                      WHEN {$joinTable}.{$presentCol} = 0 THEN 'absent'
-                      ELSE 'not_recorded'
+                        WHEN {$joinTable}.attendance_status = 'present' THEN 'present'
+                        WHEN {$joinTable}.attendance_status = 'absent' THEN 'absent'
+                        WHEN {$joinTable}.present = 1 THEN 'present'
+                        WHEN {$joinTable}.present = 0 THEN 'absent'
+                        ELSE 'not_recorded'
                     END as attendance_status
                 ")
             )

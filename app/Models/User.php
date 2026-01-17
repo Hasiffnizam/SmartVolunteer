@@ -77,8 +77,15 @@ class User extends Authenticatable implements CanResetPasswordContract
     public function joinedEvents(): BelongsToMany
     {
         return $this->belongsToMany(Event::class, 'event_registrations', 'volunteer_id', 'event_id')
-        ->withPivot(['role_task_id', 'joined_at'])
-        ->withTimestamps();
+            ->withPivot([
+                'role_task_id',
+                'joined_at',
+                'attendance_status',
+                'present',
+                'checked_in_at',
+                'check_in_method',
+            ])
+            ->withTimestamps();
     }
 
 }

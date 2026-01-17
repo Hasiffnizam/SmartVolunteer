@@ -89,7 +89,7 @@
               @endif
             </a>
 
-            {{-- ✅ Report (Selected Event) --}}
+            {{-- Report (Selected Event) --}}
             <a
               href="{{ $selectedEventId ? route('admin.events.report', $selectedEventId) : route('admin.events.index') }}"
               class="block px-3 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-white/70"

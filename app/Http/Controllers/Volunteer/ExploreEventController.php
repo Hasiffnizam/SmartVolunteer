@@ -8,6 +8,8 @@ use App\Models\EventRegistration;
 use App\Models\RoleTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\EventJoinedMail;
 
 class ExploreEventController extends Controller
 {
@@ -100,9 +102,23 @@ class ExploreEventController extends Controller
       // Increase taken slots
       $roleTask->increment('slots_taken');
 
-      return ['ok' => true, 'msg' => 'You successfully joined the event!'];
+      return ['ok' => true, 'msg' => 'You successfully joined the event!', 'role_task_id' => $roleTask->id];
     });
 
-    return back()->with($result['ok'] ? 'success' : 'error', $result['msg']);
+    
+
+    // Send confirmation email (only if join was successful)
+    if (($result['ok'] ?? false) === true) {
+      try {
+        $roleTask = RoleTask::find($result['role_task_id']);
+        if ($roleTask) {
+          Mail::to($request->user()->email)->send(new EventJoinedMail($request->user(), $event, $roleTask));
+        }
+      } catch (\Throwable $e) {
+        // Do not block joining if mail fails
+      }
+    }
+
+return back()->with($result['ok'] ? 'success' : 'error', $result['msg']);
   }
 }

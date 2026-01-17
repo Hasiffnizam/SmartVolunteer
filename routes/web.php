@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\VolunteerRegisterController;
@@ -12,16 +13,34 @@ use App\Http\Controllers\Volunteer\ProfileController;
 use App\Http\Controllers\Volunteer\ExploreEventController;
 use App\Http\Controllers\Volunteer\MyEventController;
 use App\Http\Controllers\Admin\AttendanceController;
+use App\Http\Controllers\AttendanceCheckInController;
 use App\Http\Controllers\Volunteer\ReportController;
 use App\Http\Controllers\Admin\EventReportController;
 use App\Http\Controllers\Admin\ReportAnalysisController;
+use App\Http\Controllers\Admin\EventCheckInController;
 
 /*
 |--------------------------------------------------------------------------
 | Public
 |--------------------------------------------------------------------------
 */
-Route::get('/', fn () => view('landing'))->name('landing');
+Route::get('/', function () {
+    $upcomingEvents = Event::whereDate('event_date', '>=', Carbon::today())
+        ->orderBy('event_date')
+        ->limit(3)
+        ->get();
+
+    return view('landing', compact('upcomingEvents'));
+})->name('landing');
+
+/*
+|--------------------------------------------------------------------------
+| (A) Signed email confirm (no login required)
+|--------------------------------------------------------------------------
+*/
+Route::get('/attendance/confirm/{event}/{registration}', [AttendanceCheckInController::class, 'confirmFromEmail'])
+    ->name('attendance.email.confirm')
+    ->middleware('signed');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,8 +78,22 @@ Route::middleware('auth')->group(function () {
 
     // Role-based redirect (you already have this controller)
     Route::get('/home', HomeRedirectController::class)->name('home');
-
 });
+
+/*
+|--------------------------------------------------------------------------
+| (B) Volunteer QR check-in (requires login + volunteer role + signed)
+|--------------------------------------------------------------------------
+| These are NOT inside /volunteer prefix because QR link should be short & public-ish.
+| But they still require auth + volunteer role + signed URL.
+*/
+Route::get('/checkin/{event}', [AttendanceCheckInController::class, 'showQrCheckIn'])
+    ->name('checkin.qr.show')
+    ->middleware(['auth', 'role:volunteer', 'signed']);
+
+Route::post('/checkin/{event}', [AttendanceCheckInController::class, 'confirmQrCheckIn'])
+    ->name('checkin.qr.confirm')
+    ->middleware(['auth', 'role:volunteer']);
 
 /*
 |--------------------------------------------------------------------------
@@ -68,32 +101,38 @@ Route::middleware('auth')->group(function () {
 |--------------------------------------------------------------------------
 */
 Route::prefix('admin')
-  ->name('admin.')
-  ->middleware(['auth', 'role:admin'])
-  ->group(function () {
+    ->name('admin.')
+    ->middleware(['auth', 'role:admin'])
+    ->group(function () {
 
-    Route::resource('events', EventController::class);
+        Route::resource('events', EventController::class);
 
-    Route::get('events/{event}/role-task', [EventController::class, 'roleTask'])
-      ->name('events.role-task');
+        Route::get('events/{event}/role-task', [EventController::class, 'roleTask'])
+            ->name('events.role-task');
 
-    Route::put('events/{event}/role-task', [EventController::class, 'updateRoleTask'])
-      ->name('events.role-task.update');
+        Route::put('events/{event}/role-task', [EventController::class, 'updateRoleTask'])
+            ->name('events.role-task.update');
 
-    Route::get('events/{event}/attendance', [AttendanceController::class, 'show'])
-      ->name('events.attendance');
+        Route::get('events/{event}/attendance', [AttendanceController::class, 'show'])
+            ->name('events.attendance');
 
-    Route::post('events/{event}/attendance', [AttendanceController::class, 'update'])
-      ->name('events.attendance.save');
+        Route::post('events/{event}/attendance', [AttendanceController::class, 'update'])
+            ->name('events.attendance.save');
 
-    Route::get('/events/{event}/report', [EventReportController::class, 'show'])
-        ->name('events.report');
+        Route::get('/events/{event}/report', [EventReportController::class, 'show'])
+            ->name('events.report');
 
-    Route::get('/report-analysis', [ReportAnalysisController::class, 'index'])
-        ->name('report_analysis.index');
-  });
+        Route::get('/report-analysis', [ReportAnalysisController::class, 'index'])
+            ->name('report_analysis.index');
 
-
+        /*
+        |--------------------------------------------------------------------------
+        | (C) Admin QR display page
+        |--------------------------------------------------------------------------
+        */
+        Route::get('events/{event}/check-in', [EventCheckInController::class, 'show'])
+            ->name('events.checkin');
+    });
 
 /*
 |--------------------------------------------------------------------------
@@ -118,4 +157,3 @@ Route::prefix('volunteer')
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     });
-

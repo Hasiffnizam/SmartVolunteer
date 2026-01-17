@@ -8,6 +8,8 @@ use App\Models\Skill;
 use App\Models\Cause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\VolunteerWelcomeMail;
 
 class VolunteerRegisterController extends Controller
 {
@@ -76,11 +78,18 @@ class VolunteerRegisterController extends Controller
         // cause_user(user_id, cause_id)
         $user->causes()->sync($all['causes'] ?? []);
 
+        // Send welcome email
+        try {
+            Mail::to($user->email)->send(new VolunteerWelcomeMail($user));
+        } catch (\Throwable $e) {
+            // Do not block registration if mail fails (e.g., SMTP not configured)
+        }
+
         // Clear multi-step session data
         $request->session()->forget([self::SESSION_KEY, self::STEP_KEY]);
 
         return redirect('/')
-            ->with('register_success', 'Your volunteer account has been successfully created! Welcome to SmartVolunteer 🎉');
+            ->with('success', 'Registration successful! Please check your email for confirmation.');
     }
 
     private function validateStep(Request $request, int $step): array

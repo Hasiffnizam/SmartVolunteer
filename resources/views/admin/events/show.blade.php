@@ -13,11 +13,17 @@
         </p>
       </div>
 
+      <a href="{{ route('admin.events.checkin', $event) }}"
+        class="rounded-2xl px-4 py-2.5 font-semibold text-white shadow bg-gradient-to-r from-pink-500 to-orange-500 hover:opacity-95 transition">
+        Open QR Check-in
+      </a>
+
       <a href="{{ route('admin.events.index') }}"
          class="rounded-2xl px-4 py-2.5 font-semibold bg-white/70 border border-white/60 shadow-sm
                 text-slate-700 hover:bg-white/90 transition">
         Back
       </a>
+
     </div>
 
     @if($event->description)
@@ -125,6 +131,7 @@
                 <div class="text-xs font-semibold text-slate-500 uppercase">Location</div>
                 <div class="mt-1 font-semibold text-slate-800">{{ $event->location ?? '—' }}</div>
               </div>
+
             </div>
           </div>
 

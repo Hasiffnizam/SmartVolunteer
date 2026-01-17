@@ -13,6 +13,8 @@ class EventRegistration extends Model
     'volunteer_id',
     'joined_at',
     'attendance_status',
+    'checked_in_at',
+    'check_in_method',
     'task_completion',
     'note',
   ];

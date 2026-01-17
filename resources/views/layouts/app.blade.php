@@ -79,9 +79,13 @@
   </footer>
 </main>
 
-{{-- ✅ GLOBAL SUCCESS POPUP (NO BLADE INSIDE JS FILES ANYMORE) --}}
+{{-- ✅ GLOBAL POPUPS --}}
 @if (session('success'))
   <div id="sv-success" data-message="{{ e(session('success')) }}"></div>
+@endif
+
+@if (session('error'))
+  <div id="sv-error" data-message="{{ e(session('error')) }}"></div>
 @endif
 
 <script>
@@ -103,7 +107,25 @@
       });
     }
   })();
+
+  (function () {
+    const el = document.getElementById('sv-error');
+    if (!el) return;
+
+    const msg = el.dataset.message || '';
+    if (!msg) return;
+
+    if (window.Swal) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: msg,
+        confirmButtonColor: '#0f172a'
+      });
+    }
+  })();
 </script>
+
 
 </body>
 </html>
