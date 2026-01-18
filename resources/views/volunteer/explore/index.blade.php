@@ -53,13 +53,13 @@
                   hover:shadow-xl transition hover:-translate-y-0.5">
 
           {{-- Poster --}}
-          <div class="relative h-40">
+          <div class="relative h-40 bg-slate-100">
             @if($posterUrl)
               <img src="{{ $posterUrl }}"
-                   alt="Poster"
-                   class="h-full w-full object-cover"
-                   loading="lazy"
-                   onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').classList.remove('hidden');"
+                  alt="Poster"
+                  class="h-full w-full object-contain bg-gradient-to-br from-slate-50 to-slate-100"
+                  loading="lazy"
+                  onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').classList.remove('hidden');"
               />
             @endif
 
@@ -92,16 +92,6 @@
             <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 line-clamp-2">
               {{ $event->title }}
             </h3>
-
-            @if($event->description)
-                <p class="mt-2 text-sm text-slate-600 line-clamp-2">
-                  {{ $event->description }}
-                </p>
-              @else
-                <p class="mt-2 text-sm text-slate-400 italic">
-                  No description provided.
-                </p>
-              @endif
 
             <p class="text-sm text-slate-600 mt-2 flex items-center gap-2">
               <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/70 border border-white/60">📍</span>
