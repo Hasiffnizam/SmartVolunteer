@@ -160,11 +160,13 @@ Route::prefix('volunteer')
     });
 
 Route::get('/_brevo-test', function () {
-    BrevoMailer::send(
+    $result = BrevoMailer::send(
         'YOUR_EMAIL@gmail.com',
         'Test User',
         'Brevo Test - SmartVolunteer',
         '<p>If you got this, Brevo API works ✅</p>'
     );
-    return 'Sent (check Brevo logs/inbox).';
+
+    return response()->json($result);
 });
+
