@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Event;
+use App\Services\BrevoMailer;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
@@ -157,3 +158,13 @@ Route::prefix('volunteer')
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     });
+
+Route::get('/_brevo-test', function () {
+    BrevoMailer::send(
+        'YOUR_EMAIL@gmail.com',
+        'Test User',
+        'Brevo Test - SmartVolunteer',
+        '<p>If you got this, Brevo API works ✅</p>'
+    );
+    return 'Sent (check Brevo logs/inbox).';
+});
