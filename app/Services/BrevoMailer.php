@@ -43,7 +43,6 @@ class BrevoMailer
         $body = curl_exec($ch);
         $err  = curl_error($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         // Brevo success is usually 201
         if ($body === false || $err || $code < 200 || $code >= 300) {
