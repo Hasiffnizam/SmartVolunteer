@@ -8,8 +8,8 @@ use App\Models\Skill;
 use App\Models\Cause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\VolunteerWelcomeMail;
+use App\Services\BrevoMailer;
+
 
 class VolunteerRegisterController extends Controller
 {
@@ -80,9 +80,14 @@ class VolunteerRegisterController extends Controller
 
         // Send welcome email
         try {
-            Mail::to($user->email)->send(new VolunteerWelcomeMail($user));
+            BrevoMailer::send(
+                $user->email,
+                $user->name,
+                'Welcome to SmartVolunteer',
+                view('emails.volunteer-welcome', compact('user'))->render()
+            );
         } catch (\Throwable $e) {
-            // Do not block registration if mail fails (e.g., SMTP not configured)
+            // Never block registration
         }
 
         // Clear multi-step session data

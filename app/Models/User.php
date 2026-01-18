@@ -9,6 +9,8 @@ use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Auth\Passwords\CanResetPassword;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Notifications\ResetPasswordBrevo;
+
 
 class User extends Authenticatable implements CanResetPasswordContract
 {
@@ -86,6 +88,11 @@ class User extends Authenticatable implements CanResetPasswordContract
                 'check_in_method',
             ])
             ->withTimestamps();
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordBrevo($token));
     }
 
 }

@@ -8,8 +8,7 @@ use App\Models\EventRegistration;
 use App\Models\RoleTask;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\EventJoinedMail;
+use App\Services\BrevoMailer;
 
 class ExploreEventController extends Controller
 {
@@ -110,13 +109,23 @@ class ExploreEventController extends Controller
     // Send confirmation email (only if join was successful)
     if (($result['ok'] ?? false) === true) {
       try {
-        $roleTask = RoleTask::find($result['role_task_id']);
-        if ($roleTask) {
-          Mail::to($request->user()->email)->send(new EventJoinedMail($request->user(), $event, $roleTask));
+            $roleTask = RoleTask::find($result['role_task_id']);
+
+            if ($roleTask) {
+                BrevoMailer::send(
+                    $request->user()->email,
+                    $request->user()->name,
+                    'Event Joined: ' . $event->title,
+                    view('emails.event-joined', [
+                        'user' => $request->user(),
+                        'event' => $event,
+                        'roleTask' => $roleTask,
+                    ])->render()
+                );
+            }
+        } catch (\Throwable $e) {
+            // Never block join flow
         }
-      } catch (\Throwable $e) {
-        // Do not block joining if mail fails
-      }
     }
 
 return back()->with($result['ok'] ? 'success' : 'error', $result['msg']);

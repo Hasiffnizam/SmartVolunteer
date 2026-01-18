@@ -157,14 +157,3 @@ Route::prefix('volunteer')
         Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     });
-
-Route::get('/_mail-debug', function () {
-    return response()->json([
-        'default' => config('mail.default'),
-        'host' => config('mail.mailers.smtp.host'),
-        'port' => config('mail.mailers.smtp.port'),
-        'encryption' => config('mail.mailers.smtp.encryption'),
-        'username' => config('mail.mailers.smtp.username'),
-        'from' => config('mail.from.address'),
-    ]);
-});
