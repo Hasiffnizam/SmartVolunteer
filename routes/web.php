@@ -159,14 +159,3 @@ Route::prefix('volunteer')
         Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
     });
 
-Route::get('/_brevo-test', function () {
-    $result = BrevoMailer::send(
-        'YOUR_EMAIL@gmail.com',
-        'Test User',
-        'Brevo Test - SmartVolunteer',
-        '<p>If you got this, Brevo API works ✅</p>'
-    );
-
-    return response()->json($result);
-});
-

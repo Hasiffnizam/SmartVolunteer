@@ -2,17 +2,17 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Log;
+
 class BrevoMailer
 {
-    public static function send(string $toEmail, string $toName, string $subject, string $html): array
+    public static function send(string $toEmail, string $toName, string $subject, string $html): void
     {
         $apiKey = env('BREVO_API_KEY');
 
         if (!$apiKey) {
-            return [
-                'ok' => false,
-                'error' => 'BREVO_API_KEY missing in environment',
-            ];
+            Log::error('Brevo API key missing (BREVO_API_KEY).');
+            return;
         }
 
         $payload = [
@@ -43,14 +43,16 @@ class BrevoMailer
         $body = curl_exec($ch);
         $err  = curl_error($ch);
         $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-        return [
-            'ok' => ($code >= 200 && $code < 300),
-            'http_code' => $code,
-            'curl_error' => $err,
-            'response_body' => $body,
-            'sender' => $payload['sender'],
-            'to' => $toEmail,
-        ];
+        if ($body === false || $err || $code < 200 || $code >= 300) {
+            Log::error('Brevo email failed', [
+                'http_code' => $code,
+                'curl_error' => $err,
+                'response_body' => $body,
+                'to' => $toEmail,
+                'subject' => $subject,
+            ]);
+        }
     }
 }
