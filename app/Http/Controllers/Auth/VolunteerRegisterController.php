@@ -8,8 +8,8 @@ use App\Models\Skill;
 use App\Models\Cause;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use App\Services\BrevoMailer;
-
 
 class VolunteerRegisterController extends Controller
 {
@@ -21,7 +21,6 @@ class VolunteerRegisterController extends Controller
         $step = (int) $request->session()->get(self::STEP_KEY, 1);
         $data = (array) $request->session()->get(self::SESSION_KEY, []);
 
-        // ✅ Load master lists from DB (same list used for events + volunteers)
         $skills = Skill::orderBy('name')->get();
         $causes = Cause::orderBy('name')->get();
 
@@ -52,7 +51,6 @@ class VolunteerRegisterController extends Controller
 
     public function finish(Request $request)
     {
-        // ✅ Step 3 now returns skill IDs + cause IDs
         $validated = $this->validateStep($request, 3);
 
         $data = (array) $request->session()->get(self::SESSION_KEY, []);
@@ -71,26 +69,30 @@ class VolunteerRegisterController extends Controller
             'role'       => 'volunteer',
         ]);
 
-        // ✅ Save to pivot tables
-        // skill_user(user_id, skill_id)
+        // Save pivot
         $user->skills()->sync($all['skills'] ?? []);
-
-        // cause_user(user_id, cause_id)
         $user->causes()->sync($all['causes'] ?? []);
 
-        // Send welcome email
+        // Send welcome email via Brevo API
         try {
+            $html = view('emails.volunteer-welcome', ['user' => $user])->render();
+
             BrevoMailer::send(
                 $user->email,
-                $user->name,
+                $user->name ?? 'Volunteer',
                 'Welcome to SmartVolunteer',
-                view('emails.volunteer-welcome', compact('user'))->render()
+                $html
             );
+
+            Log::info('Welcome email sent (Brevo)', ['email' => $user->email]);
         } catch (\Throwable $e) {
-            // Never block registration
+            Log::error('Welcome email failed (Brevo)', [
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+            ]);
         }
 
-        // Clear multi-step session data
+        // Clear session
         $request->session()->forget([self::SESSION_KEY, self::STEP_KEY]);
 
         return redirect('/')
@@ -119,7 +121,6 @@ class VolunteerRegisterController extends Controller
             ]);
         }
 
-        // ✅ Step 3: skills + causes are IDs from DB now
         return $request->validate([
             'skills' => ['nullable','array'],
             'skills.*' => ['integer','exists:skills,id'],
