@@ -52,64 +52,65 @@
            class="group rounded-3xl bg-white/70 backdrop-blur border border-white/60 shadow-lg overflow-hidden
                   hover:shadow-xl transition hover:-translate-y-0.5">
 
-          {{-- Poster --}}
-          <div class="relative h-40 bg-slate-100">
-            @if($posterUrl)
-              <img src="{{ $posterUrl }}"
+          <div class="flex flex-col sm:flex-row">
+
+            {{-- Poster (LEFT) --}}
+            <div class="relative w-full h-44 sm:h-auto sm:w-44 bg-slate-100 shrink-0 overflow-hidden">
+              @if($posterUrl)
+                <img
+                  src="{{ $posterUrl }}"
                   alt="Poster"
-                  class="h-full w-full object-contain bg-gradient-to-br from-slate-50 to-slate-100"
+                  class="h-full w-full object-cover"
                   loading="lazy"
                   onerror="this.style.display='none'; this.parentElement.querySelector('.fallback').classList.remove('hidden');"
-              />
-            @endif
+                />
+              @endif
 
-            {{-- Fallback poster --}}
-            <div class="fallback {{ $posterUrl ? 'hidden' : '' }} absolute inset-0 grid place-items-center bg-gradient-to-br from-slate-50 to-slate-100">
-              <div class="text-center px-4">
-                <div class="mx-auto h-12 w-12 rounded-2xl bg-white/80 border border-slate-200 grid place-items-center shadow-sm">
-                  🗓️
+              {{-- Fallback --}}
+              <div class="fallback {{ $posterUrl ? 'hidden' : '' }} absolute inset-0 grid place-items-center bg-gradient-to-br from-slate-50 to-slate-100">
+                <div class="text-center px-4">
+                  <div class="mx-auto h-12 w-12 rounded-2xl bg-white/80 border border-slate-200 grid place-items-center shadow-sm">
+                    🗓️
+                  </div>
+                  <p class="mt-3 text-sm font-semibold text-slate-600">No poster uploaded</p>
                 </div>
-                <p class="mt-3 text-sm font-semibold text-slate-600">No poster uploaded</p>
+              </div>
+
+              {{-- Badges --}}
+              <div class="absolute top-3 left-3 flex gap-2">
+                <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
+                  {{ $status }}
+                </span>
+              </div>
+
+              <div class="absolute top-3 right-3">
+                <span class="rounded-full px-3 py-1 text-xs font-semibold bg-white/90 text-slate-700 border border-white/60 shadow-sm">
+                  {{ \Carbon\Carbon::parse($event->event_date)->format('d M Y') }}
+                </span>
               </div>
             </div>
 
-            {{-- Top badges --}}
-            <div class="absolute top-3 left-3 flex gap-2">
-              <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">
-                {{ $status }}
-              </span>
-            </div>
+            {{-- Body (RIGHT) --}}
+            <div class="flex-1 p-5">
+              <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 line-clamp-2">
+                {{ $event->title }}
+              </h3>
 
-            <div class="absolute top-3 right-3">
-              <span class="rounded-full px-3 py-1 text-xs font-semibold bg-white/80 text-slate-700 border border-white/60 shadow-sm">
-                {{ \Carbon\Carbon::parse($event->event_date)->format('d M Y') }}
-              </span>
-            </div>
-          </div>
+              <p class="text-sm text-slate-600 mt-2 flex items-center gap-2">
+                <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/70 border border-white/60">📍</span>
+                <span class="line-clamp-1">{{ $event->location }}</span>
+              </p>
 
-          {{-- Body --}}
-          <div class="p-5">
-            <h3 class="text-lg font-bold text-slate-800 group-hover:text-slate-900 line-clamp-2">
-              {{ $event->title }}
-            </h3>
-
-            <p class="text-sm text-slate-600 mt-2 flex items-center gap-2">
-              <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/70 border border-white/60">📍</span>
-              <span class="line-clamp-1">{{ $event->location }}</span>
-            </p>
-
-            <div class="mt-4 flex items-center justify-between text-sm">
-              <div class="flex items-center gap-2 text-slate-600">
-                <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/70 border border-white/60">⏰</span>
+              <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
                 <div class="flex items-center gap-2 text-slate-600">
+                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-white/70 border border-white/60">⏰</span>
                   <span class="font-semibold text-slate-800">{{ $event->timeSlotLabel() }}</span>
                 </div>
 
+                <span class="rounded-2xl px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  Joined: <span class="font-bold">{{ $event->registrations_count ?? 0 }}</span>
+                </span>
               </div>
-
-              <span class="rounded-2xl px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                Joined: <span class="font-bold">{{ $event->registrations_count ?? 0 }}</span>
-              </span>
             </div>
 
           </div>
