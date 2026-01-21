@@ -1,3 +1,22 @@
+## 🔗 Live Demo Access
+
+You can explore the **SmartVolunteer** system using the following demo accounts:
+
+### 👨‍💼 Admin Account
+- **Email:** `admin@smartvolunteer.com`
+- **Password:** `Admin@12345`
+
+Access full admin features such as event management, role task setup, volunteer monitoring, and attendance tracking.
+
+### 🙋 Volunteer Account
+- **Email:** `aceppohsems@gmail.com`
+- **Password:** `Hasiff12`
+
+Explore volunteer features including registration, joining events, selecting roles, and viewing participation history.
+
+⚠️ **Note:** These accounts are provided for demonstration and testing purposes only.  
+Please do not modify or delete important data.
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
